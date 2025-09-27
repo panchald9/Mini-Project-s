@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Two‑Panel Loan Calculator (with Downpayment)</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#4f46e5; --glass: rgba(255,255,255,0.03);
+      --success:#10b981; --danger:#ef4444;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#071029 0%, #081428 60%);color:#e6eef8;padding:28px;}
+    .wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    @media (max-width:880px){.wrap{grid-template-columns:1fr}}
+    .card{background:linear-gradient(180deg,var(--card),#071221);padding:20px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    h2{margin:0 0 12px;font-size:18px}
+    .muted{color:var(--muted);font-size:13px}
+    .row{display:flex;gap:12px;margin-bottom:12px}
+    .col{flex:1}
+    label{display:block;font-size:13px;margin-bottom:6px;color:#e6eef8}
+    input[type=number], select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:var(--glass);color:inherit}
+    .small{font-size:13px;color:var(--muted)}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    button{cursor:pointer;padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:white;font-weight:600}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .result{margin-top:14px;padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+    .big{font-size:20px;font-weight:700}
+    .tiny{font-size:12px;color:var(--muted)}
+    .compare{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:12px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;font-size:13px}
+    .note{font-size:12px;color:var(--muted);margin-top:8px}
+  </style>
+</head>
+<body>
+  <div style="max-width:1100px;margin:0 auto 18px;text-align:center">
+    <h1 style="margin:0 0 6px">Two‑Panel Loan Calculator</h1>
+    <div class="muted">Two calculators side-by-side — compare monthly payments and totals. Includes downpayment input.</div>
+  </div>
+
+  <div class="wrap">
+    <!-- Calculator A -->
+    <section class="card" id="calcA">
+      <h2>Loan A</h2>
+      <div class="muted">Enter loan details for scenario A</div>
+
+      <div class="row">
+        <div class="col"><label>Loan Amount (₹)</label><input id="amountA" type="number" min="0" step="0.01" value="500000"></div>
+        <div class="col"><label>Downpayment (₹)</label><input id="downA" type="number" min="0" step="0.01" value="50000"></div>
+      </div>
+
+      <div class="row">
+        <div class="col"><label>Interest Rate (annual %)</label><input id="rateA" type="number" min="0" step="0.01" value="9.5"></div>
+        <div class="col"><label>Term</label>
+          <div style="display:flex;gap:8px"><input id="termA" type="number" min="1" step="1" value="20"><select id="termUnitA"><option value="years">Years</option><option value="months">Months</option></select></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button onclick="calculate('A')">Calculate</button>
+        <button class="secondary" onclick="resetCalc('A')">Reset</button>
+        <button class="secondary" onclick="copyToB()">Copy to B</button>
+      </div>
+
+      <div class="result" id="resultA" aria-live="polite">
+        <div class="big" id="monthlyA">Monthly: —</div>
+        <div class="tiny" id="totalsA">Total Payment: — | Total Interest: —</div>
+        <div class="note">Principal after downpayment and amortized monthly payments shown.</div>
+      </div>
+
+    </section>
+
+    <!-- Calculator B -->
+    <section class="card" id="calcB">
+      <h2>Loan B</h2>
+      <div class="muted">Enter loan details for scenario B</div>
+
+      <div class="row">
+        <div class="col"><label>Loan Amount (₹)</label><input id="amountB" type="number" min="0" step="0.01" value="600000"></div>
+        <div class="col"><label>Downpayment (₹)</label><input id="downB" type="number" min="0" step="0.01" value="60000"></div>
+      </div>
+
+      <div class="row">
+        <div class="col"><label>Interest Rate (annual %)</label><input id="rateB" type="number" min="0" step="0.01" value="8.75"></div>
+        <div class="col"><label>Term</label>
+          <div style="display:flex;gap:8px"><input id="termB" type="number" min="1" step="1" value="240"><select id="termUnitB"><option value="months">Months</option><option value="years">Years</option></select></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button onclick="calculate('B')">Calculate</button>
+        <button class="secondary" onclick="resetCalc('B')">Reset</button>
+        <button class="secondary" onclick="copyToA()">Copy to A</button>
+      </div>
+
+      <div class="result" id="resultB" aria-live="polite">
+        <div class="big" id="monthlyB">Monthly: —</div>
+        <div class="tiny" id="totalsB">Total Payment: — | Total Interest: —</div>
+        <div class="note">Use the Compare button below to see which loan is cheaper monthly.</div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div style="max-width:1100px;margin:18px auto;display:flex;gap:12px;align-items:center;justify-content:space-between">
+    <div class="card" style="flex:1">
+      <h2>Quick Compare</h2>
+      <div class="compare">
+        <div class="small">Monthly A</div>
+        <div id="cmpMonthlyA" class="big">—</div>
+        <div class="small">Monthly B</div>
+        <div id="cmpMonthlyB" class="big">—</div>
+        <div><button onclick="compare()">Compare</button></div>
+      </div>
+      <div class="note">After calculating both sides, press Compare to highlight the cheaper monthly payment.</div>
+    </div>
+
+    <div class="card" style="width:260px;">
+      <h2>Amortization (Preview)</h2>
+      <div id="amortPreview" class="tiny">Click a calculator's Monthly result to see first 6 rows.</div>
+    </div>
+  </div>
+
+<script>
+  function toCurrency(num){
+    if (isNaN(num) || !isFinite(num)) return '—';
+    return '₹' + Number(num).toLocaleString('en-IN',{maximumFractionDigits:2,minimumFractionDigits:2});
+  }
+
+  function getInputs(prefix){
+    const amount = parseFloat(document.getElementById('amount'+prefix).value) || 0;
+    const down = parseFloat(document.getElementById('down'+prefix).value) || 0;
+    const rate = parseFloat(document.getElementById('rate'+prefix).value) || 0;
+    const termVal = parseFloat(document.getElementById('term'+prefix).value) || 0;
+    const unit = document.getElementById('termUnit'+prefix).value;
+    const termMonths = unit==='years' ? Math.round(termVal*12) : Math.round(termVal);
+    const principal = Math.max(0, amount - down);
+    return {amount, down, rate, termVal, termMonths, principal};
+  }
+
+  // Standard amortizing loan monthly payment formula
+  function monthlyPayment(principal, annualRatePct, months){
+    if(months<=0) return 0;
+    const r = (annualRatePct/100)/12;
+    if(r === 0) return principal / months;
+    const m = (principal * r) / (1 - Math.pow(1+r, -months));
+    return m;
+  }
+
+  function calculate(prefix){
+    const {amount, down, rate, termMonths, principal} = getInputs(prefix);
+    const monthly = monthlyPayment(principal, rate, termMonths);
+    const totalPayment = monthly * termMonths + down; // include downpayment in total paid by borrower
+    const totalInterest = monthly * termMonths - principal;
+
+    document.getElementById('monthly'+prefix).textContent = 'Monthly: ' + toCurrency(monthly);
+    document.getElementById('totals'+prefix).textContent = 'Total Payment: ' + toCurrency(totalPayment) + ' | Total Interest: ' + toCurrency(totalInterest);
+
+    // update compare fields
+    if(prefix==='A'){ document.getElementById('cmpMonthlyA').textContent = toCurrency(monthly); }
+    if(prefix==='B'){ document.getElementById('cmpMonthlyB').textContent = toCurrency(monthly); }
+
+    // attach click to show amortization preview
+    const monthlyEl = document.getElementById('monthly'+prefix);
+    monthlyEl.style.cursor = 'pointer';
+    monthlyEl.onclick = ()=> showAmort(prefix, principal, rate, termMonths);
+  }
+
+  function resetCalc(prefix){
+    if(prefix==='A'){
+      document.getElementById('amountA').value = 500000; document.getElementById('downA').value = 50000; document.getElementById('rateA').value = 9.5; document.getElementById('termA').value = 20; document.getElementById('termUnitA').value='years';
+    } else {
+      document.getElementById('amountB').value = 600000; document.getElementById('downB').value = 60000; document.getElementById('rateB').value = 8.75; document.getElementById('termB').value = 240; document.getElementById('termUnitB').value='months';
+    }
+    calculate(prefix);
+  }
+
+  function copyToB(){
+    document.getElementById('amountB').value = document.getElementById('amountA').value;
+    document.getElementById('downB').value = document.getElementById('downA').value;
+    document.getElementById('rateB').value = document.getElementById('rateA').value;
+    document.getElementById('termB').value = document.getElementById('termA').value;
+    document.getElementById('termUnitB').value = document.getElementById('termUnitA').value;
+    calculate('B');
+  }
+  function copyToA(){
+    document.getElementById('amountA').value = document.getElementById('amountB').value;
+    document.getElementById('downA').value = document.getElementById('downB').value;
+    document.getElementById('rateA').value = document.getElementById('rateB').value;
+    document.getElementById('termA').value = document.getElementById('termB').value;
+    document.getElementById('termUnitA').value = document.getElementById('termUnitB').value;
+    calculate('A');
+  }
+
+  function compare(){
+    const a = parseFloat(document.getElementById('cmpMonthlyA').textContent.replace(/[^0-9.-]+/g,"")) || Infinity;
+    const b = parseFloat(document.getElementById('cmpMonthlyB').textContent.replace(/[^0-9.-]+/g,"")) || Infinity;
+    if(!isFinite(a) || !isFinite(b)){ alert('Please calculate both loans first.'); return; }
+    if(a < b){ alert('Loan A has the lower monthly payment.'); }
+    else if(b < a){ alert('Loan B has the lower monthly payment.'); }
+    else { alert('Both loans have the same monthly payment.'); }
+  }
+
+  function showAmort(prefix, principal, rate, months){
+    // show first 6 rows of amortization schedule
+    const r = (rate/100)/12;
+    let bal = principal;
+    let rows = [];
+    for(let i=1;i<=Math.min(6, months);i++){
+      const interest = bal * r;
+      const payment = monthlyPayment(principal, rate, months);
+      const principalPaid = payment - interest;
+      bal = Math.max(0, bal - principalPaid);
+      rows.push({month:i,payment,interest,principalPaid,bal});
+    }
+    const container = document.getElementById('amortPreview');
+    let html = '<table><tr><th>Mo</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Balance</th></tr>';
+    rows.forEach(rw=>{ html += `<tr><td>${rw.month}</td><td>${toCurrency(rw.payment)}</td><td>${toCurrency(rw.interest)}</td><td>${toCurrency(rw.principalPaid)}</td><td>${toCurrency(rw.balance)}</td></tr>` });
+    html += '</table>';
+    container.innerHTML = html;
+  }
+
+  // init
+  calculate('A'); calculate('B');
+</script>
+</body>
+</html>
